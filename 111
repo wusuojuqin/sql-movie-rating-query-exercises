@@ -1,0 +1,70 @@
+movie('mid','title','year','director')
+reviewer('rid','name')
+rating('rid','mid','stars','ratingdate')
+
+Q1: Find the titles of all movies directed by Steven Spielberg
+
+select title from movie where director = 'Steven Spielberg'
+
+Q2: Find all years that have a moviea that received a ragting of 4 or 5, and sort them in increasing order
+
+select year, stars from (movie inner join rating on movie.mid = rating.mid c) where c.stars in (4,5)
+
+Q3: Find the titles of all moveis that have no ratings
+
+select title from movie a left join rating b on a.mid = b.mid where stars is null
+
+select title from movie where title not in
+(select title from movie a left inner join rating b on a.mid = b.mid)
+
+select title from movie where mid not in
+(select mid from rating)
+
+Q4: Some reviewers didn't provide a date with their ratings, find the names of all reviewer whho have ratings with a null valiue for the date
+
+select name from reviewer a left join ratings b on a.rid = b.rid where ratingdate is null
+
+Q5: For all cases where the same reviewer rated the saame movie twice and gave it a higher rating the second time, return the reviewer's name and the title of the movie
+
+select name, title
+from 
+((select name,stars,mid,ratingdate from reviewer a left join rating b on a.rid = b.rid) c
+left join select title from movie d on c.mid = d.mid) as e
+left join
+((select name,stars,mid,ratingdate from reviewer a left join rating b on a.rid = b.rid) c
+left join select title from movie d on c.mid = d.mid) as f
+where e.title = f.title and e.ratingdate<f.ratingdate and e.stars<f.stars
+
+select r2.rid,r2.mid,count(*)
+from rating r1 inner join rating r2
+on r1.rid = r2.rid
+where r1.ratingdate < r2.ratingdate and r1.star < r2.star and count(*) = 1
+
+
+Q6: For each movie that has at least one rating, find the highest number of stars that movie received. Return movie title and number of stars. Sort by movie title
+
+select title, max(stars),
+from movie inner join rating on a.mid = b.mid where b.stars in not null
+group by tltle
+order by title asc
+
+Q7: For each movie, return the title and the rating spread. That is, the difference between highest and lowest ratings given to that movie. Sort by rating spread from highest to lowest, then by movie title.
+
+select title, max(stars) - min(stars) as rating_spread
+from movie inner join rating on a.mid = b.mid
+where rating is not null
+group by title
+order by 2 desc, 1 asc
+
+Q8: Find the diffrernce between the average rating of movies released vebore 1980 and the average rating of movies releaesd after 1980.
+
+select
+(select avg(avg_rating)
+from 
+(select movie, avg(stars) as avg_rating)
+where ratingdate < '1980-01-01'
+union all
+select avg(avg_rating)
+from
+(select movie, avg(stars) as avg_rating from )
+where ratingdate > '1980-01-01'
